@@ -14,7 +14,7 @@ def main():
         print('Usage: uv run main.py "<question?>"')
         exit(1)
     user_prompt = argv[1]
-    
+
     messages = [
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),]
 
@@ -24,9 +24,12 @@ def main():
         )
 
     print(response.text)
-    usage_metadata = response.usage_metadata
-    print(f"Prompt tokens: {usage_metadata.prompt_token_count}")
-    print(f"Response tokens: {usage_metadata.candidates_token_count}")
+
+    if "--verbose" in argv:
+        usage_metadata = response.usage_metadata
+        print(f"User prompt: {user_prompt}")
+        print(f"Prompt tokens: {usage_metadata.prompt_token_count}")
+        print(f"Response tokens: {usage_metadata.candidates_token_count}")
 
 
 if __name__ == "__main__":
