@@ -1,3 +1,4 @@
+# Warning: It does not have all the security and safety features that a production AI agent would have. The LLM can run arbitrary code that you (or it) places in the working directory... so be careful. It is for learning purposes only. 
 
 What Does the Agent Do?
 
