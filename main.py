@@ -8,6 +8,7 @@ from functions.get_files_info import schema_get_files_info
 from functions.get_file_content import schema_get_file_content
 from functions.run_python_file import schema_run_python_file
 from functions.write_file import schema_write_file
+from functions.call_function import call_function
 
 load_dotenv()
 apiKey = os.environ.get("GEMINI_API_KEY")
@@ -36,6 +37,9 @@ def main():
         print('Usage: uv run main.py "<question?>"')
         exit(1)
     user_prompt = argv[1]
+    verbose = False
+    if "--verbose" in argv:
+        verbose = True
 
     messages = [
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),]
@@ -45,20 +49,31 @@ def main():
         contents = messages,
         config=types.GenerateContentConfig( tools=[available_functions], system_instruction=system_prompt),
         )
-   
-    if response.function_calls:
-        for call in response.function_calls:
-            print (f"Calling function: {call.name}({call.args})")
-
-    if response.text:
-        print (response.text)
-
-
-    if "--verbose" in argv:
+    
+    if verbose:
         usage_metadata = response.usage_metadata
         print(f"User prompt: {user_prompt}")
         print(f"Prompt tokens: {usage_metadata.prompt_token_count}")
         print(f"Response tokens: {usage_metadata.candidates_token_count}")
+
+    if response.text:
+        print (response.text)
+    
+    function_responses = [] 
+    if response.function_calls:
+        for call in response.function_calls:
+            function_call_result = call_function(call, verbose)
+            if (not function_call_result.parts 
+                or not function_call_result.parts[0].function_response):
+                raise RuntimeError("ERROR: Missing call_function response")
+            
+            if verbose:
+                print(f"-> {function_call_result.parts[0].function_response.response}")
+            function_responses.append(function_call_result.parts[0])
+
+
+
+
 
 
 if __name__ == "__main__":
